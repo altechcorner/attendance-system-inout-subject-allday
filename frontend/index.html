@@ -13,14 +13,27 @@
     <button type="submit">Register</button>
   </form>
 
+  <h2>Set Active Subject</h2>
+  <form id="setSubjectForm">
+    <select id="activeSubjectSelect" required>
+      <option value="">-- Select Subject --</option>
+    </select>
+    <button type="submit">Set Subject</button>
+  </form>
+  <p id="activeSubjectDisplay"></p>
+
   <h2>Time In / Time Out</h2>
   <form id="attendanceForm">
-    <input placeholder="ID Number" name="id_number" required>
-    <button type="submit">Submit</button>
+    <input type="text" name="id_number" placeholder="Student ID Number" required autofocus />
+    <button type="submit">Time In / Time Out</button>
   </form>
+  <p id="attendanceMessage"></p>
   <p>Enter your ID number to time in. Enter again to time out.</p>
 
   <script>
+    let activeSubjectId = null;
+    let activeSubjectText = '';
+
     document.getElementById('registerForm').onsubmit = async (e) => {
       e.preventDefault();
       const formData = new FormData(e.target);
@@ -34,17 +47,54 @@
       alert(await res.text());
     };
 
+    // Populate the subject combo box
+    async function loadSubjects() {
+      const res = await fetch('http://localhost:3000/api/subjects');
+      const subjects = await res.json();
+      const select = document.getElementById('activeSubjectSelect');
+      select.innerHTML = '<option value="">-- Select Subject --</option>';
+      subjects.forEach(subj => {
+        const opt = document.createElement('option');
+        opt.value = subj.id;
+        opt.textContent = `${subj.subject_code} - ${subj.subject_description}`;
+        select.appendChild(opt);
+      });
+    }
+    loadSubjects();
+
+    // Set active subject from combo box
+    document.getElementById('setSubjectForm').onsubmit = function(e) {
+      e.preventDefault();
+      const select = document.getElementById('activeSubjectSelect');
+      if (!select.value) {
+        document.getElementById('activeSubjectDisplay').textContent = 'Please select a subject!';
+        activeSubjectId = null;
+        activeSubjectText = '';
+        return;
+      }
+      activeSubjectId = select.value;
+      activeSubjectText = select.options[select.selectedIndex].textContent;
+      document.getElementById('activeSubjectDisplay').textContent = `Active Subject: ${activeSubjectText}`;
+      e.target.reset();
+    };
+
     document.getElementById('attendanceForm').onsubmit = async (e) => {
       e.preventDefault();
+      if (!activeSubjectId) {
+        document.getElementById('attendanceMessage').textContent = 'Please set the active subject first!';
+        return;
+      }
       const formData = new FormData(e.target);
       const data = Object.fromEntries(formData.entries());
+      data.subject_id = activeSubjectId;
 
       const res = await fetch('http://localhost:3000/api/attendance/mark', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(data)
       });
-      alert(await res.text());
+      document.getElementById('attendanceMessage').textContent = await res.text();
+      e.target.reset();
     };
   </script>
 </body>

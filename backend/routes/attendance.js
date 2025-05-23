@@ -4,7 +4,7 @@ const db = require('../db');
 const sendEmail = require('../sendEmail');
 
 router.post('/mark', async (req, res) => {
-  const { id_number } = req.body;
+  const { id_number, subject_id } = req.body;
   const now = new Date();
   const today = now.toISOString().slice(0, 10); // YYYY-MM-DD
 
@@ -14,18 +14,18 @@ router.post('/mark', async (req, res) => {
 
     const student = results[0];
 
-    // Get the latest attendance for today
+    // Check for today's attendance for this subject
     db.query(
-      'SELECT * FROM attendance WHERE student_id = ? AND date = ? ORDER BY id DESC LIMIT 1',
-      [student.id, today],
-      async (err, attendanceRows) => {
+      'SELECT * FROM attendance WHERE student_id = ? AND subject_id = ? AND date = ? ORDER BY id DESC LIMIT 1',
+      [student.id, subject_id, today],
+      (err, attendanceRows) => {
         if (err) return res.status(500).send(err);
 
-        if (attendanceRows.length === 0) {
-          // No attendance for today: allow TIME IN
+        if (attendanceRows.length === 0 || attendanceRows[0].time_out !== null) {
+          // TIME IN (new record)
           db.query(
-            'INSERT INTO attendance (student_id, date, time_in) VALUES (?, ?, ?)',
-            [student.id, today, now],
+            'INSERT INTO attendance (student_id, subject_id, date, time_in) VALUES (?, ?, ?, ?)',
+            [student.id, subject_id, today, now],
             async (err) => {
               if (err) return res.status(500).send(err);
 
@@ -45,7 +45,7 @@ router.post('/mark', async (req, res) => {
             }
           );
         } else if (attendanceRows[0].time_out === null) {
-          // Attendance exists, but no time-out: allow TIME OUT
+          // TIME OUT (update last record)
           db.query(
             'UPDATE attendance SET time_out = ? WHERE id = ?',
             [now, attendanceRows[0].id],
@@ -68,8 +68,7 @@ router.post('/mark', async (req, res) => {
             }
           );
         } else {
-          // Both time-in and time-out already exist for today
-          res.status(400).send('Attendance for today is already complete.');
+          res.status(400).send('Attendance for this subject today is already complete.');
         }
       }
     );

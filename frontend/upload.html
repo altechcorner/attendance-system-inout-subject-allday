@@ -5,6 +5,14 @@
   <title>Upload Students CSV</title>
 </head>
 <body>
+  <h2>Register Subject</h2>
+  <form id="subjectForm">
+    <input type="text" name="subject_code" placeholder="Subject Code" required />
+    <input type="text" name="subject_description" placeholder="Subject Description" required />
+    <button type="submit">Register Subject</button>
+  </form>
+  <p id="subjectMessage"></p>
+
   <h2>Upload Students CSV</h2>
   <form id="uploadForm">
     <input type="file" id="csvFile" accept=".csv" required />
@@ -12,6 +20,21 @@
   </form>
   <p id="message"></p>
   <script>
+    // Subject registration
+    document.getElementById('subjectForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const data = Object.fromEntries(formData.entries());
+      const res = await fetch('http://localhost:3000/api/subjects/register', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+      });
+      document.getElementById('subjectMessage').textContent = await res.text();
+      e.target.reset();
+    });
+
+    // CSV upload
     document.getElementById('uploadForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       const fileInput = document.getElementById('csvFile');
