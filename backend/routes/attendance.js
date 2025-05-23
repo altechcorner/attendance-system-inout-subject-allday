@@ -21,8 +21,8 @@ router.post('/mark', async (req, res) => {
       async (err, attendanceRows) => {
         if (err) return res.status(500).send(err);
 
-        if (attendanceRows.length === 0 || attendanceRows[0].time_out !== null) {
-          // TIME IN (new record)
+        if (attendanceRows.length === 0) {
+          // No attendance for today: allow TIME IN
           db.query(
             'INSERT INTO attendance (student_id, date, time_in) VALUES (?, ?, ?)',
             [student.id, today, now],
@@ -45,7 +45,7 @@ router.post('/mark', async (req, res) => {
             }
           );
         } else if (attendanceRows[0].time_out === null) {
-          // TIME OUT (update last record)
+          // Attendance exists, but no time-out: allow TIME OUT
           db.query(
             'UPDATE attendance SET time_out = ? WHERE id = ?',
             [now, attendanceRows[0].id],
@@ -67,6 +67,9 @@ router.post('/mark', async (req, res) => {
               );
             }
           );
+        } else {
+          // Both time-in and time-out already exist for today
+          res.status(400).send('Attendance for today is already complete.');
         }
       }
     );

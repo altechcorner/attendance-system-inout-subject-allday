@@ -4,7 +4,7 @@ Attendance Monitoring System
 
 ## Description
 
-This project will allow students to time-in and time-out with the duration of 1 minute in receiving an email and multiple times in one day.
+This project will allow students to time-in and time-out with the duration of 1 minute in receiving an email and for one day only.
 
 ## Getting Started
 
