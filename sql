@@ -1,11 +1,15 @@
-CREATE DATABASE attendance_db;
+CREATE DATABASE IF NOT EXISTS attendance_db;
 USE attendance_db;
+
+DROP TABLE IF EXISTS students;
+DROP TABLE IF EXISTS attendance;
+DROP TABLE IF EXISTS pending_emails;
 
 CREATE TABLE students (
   id INT AUTO_INCREMENT PRIMARY KEY,
   id_number VARCHAR(50) UNIQUE,
   name VARCHAR(100),
-  email VARCHAR(100) UNIQUE
+  email VARCHAR(100) -- removed UNIQUE constraint
 );
 
 CREATE TABLE attendance (
@@ -16,7 +20,6 @@ CREATE TABLE attendance (
   time_out DATETIME,
   FOREIGN KEY (student_id) REFERENCES students(id)
 );
-
 
 CREATE TABLE pending_emails (
   id INT AUTO_INCREMENT PRIMARY KEY,

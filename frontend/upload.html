@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Upload Students CSV</title>
+</head>
+<body>
+  <h2>Upload Students CSV</h2>
+  <form id="uploadForm">
+    <input type="file" id="csvFile" accept=".csv" required />
+    <button type="submit">Upload</button>
+  </form>
+  <p id="message"></p>
+  <script>
+    document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const fileInput = document.getElementById('csvFile');
+      if (!fileInput.files.length) return;
+
+      const formData = new FormData();
+      formData.append('csv', fileInput.files[0]);
+
+      const response = await fetch('http://localhost:3000/api/students/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      const text = await response.text();
+      document.getElementById('message').textContent = text;
+    });
+  </script>
+</body>
+</html>

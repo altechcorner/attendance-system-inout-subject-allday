@@ -33,6 +33,14 @@ Project is work in progress
 still in the tweaking and configuration stage
 ```
 
+CSV Format in uploading records
+```
+id_number, name, email
+Examples:
+123	Kris	altechcorner@gmail.com
+456	Mark	altechcorner@gmail.com
+789	Manny	altechcorner@gmail.com
+```
 ## Authors
 
 Contributors names and contact info
