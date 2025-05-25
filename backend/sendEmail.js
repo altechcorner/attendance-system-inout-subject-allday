@@ -10,6 +10,7 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+// Removed activeSubject parameter
 function sendEmail(to, subject, text, html) {
   const mailOptions = {
     from: 'admin@ccsdepartment.com',

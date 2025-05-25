@@ -37,5 +37,6 @@ CREATE TABLE pending_emails (
   message TEXT NOT NULL,
   html_message TEXT,
   send_at DATETIME NOT NULL,
-  sent TINYINT(1) DEFAULT 0
+  sent TINYINT(1) DEFAULT 0,
+  active_subject VARCHAR(255)
 );
