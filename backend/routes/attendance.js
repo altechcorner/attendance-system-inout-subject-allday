@@ -45,7 +45,13 @@ router.post('/mark', async (req, res) => {
                   [student.email, subject, message, htmlMessage, sendAt, activeSubject],
                   (err) => {
                     if (err) return res.status(500).send('Time IN recorded but failed to queue email.');
-                    res.send('Time IN recorded. Email will be sent in 1 minute.');
+                    res.json({
+                      status: 'success',
+                      message: `Time IN recorded for ${student.name} at ${now.toLocaleString()}. Email will be sent in 1 minute.`,
+                      type: 'IN',
+                      time: now.toLocaleString(),
+                      name: student.name
+                    });
                   }
                 );
               }
@@ -64,11 +70,17 @@ router.post('/mark', async (req, res) => {
                 const sendAt = new Date(now.getTime() + 1 * 60000); // 1 minute later
 
                 db.query(
-                  'INSERT INTO pending_emails (to_email, subject, message, html_message, send_at) VALUES (?, ?, ?, ?, ?)',
-                  [student.email, subject, message, htmlMessage, sendAt],
+                  'INSERT INTO pending_emails (to_email, subject, message, html_message, send_at, active_subject) VALUES (?, ?, ?, ?, ?, ?)',
+                  [student.email, subject, message, htmlMessage, sendAt, activeSubject],
                   (err) => {
                     if (err) return res.status(500).send('Time OUT recorded but failed to queue email.');
-                    res.send('Time OUT recorded. Email will be sent in 1 minute.');
+                    res.json({
+                      status: 'success',
+                      message: `Time OUT recorded for ${student.name} at ${now.toLocaleString()}. Email will be sent in 1 minute.`,
+                      type: 'OUT',
+                      time: now.toLocaleString(),
+                      name: student.name
+                    });
                   }
                 );
               }
