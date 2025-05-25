@@ -194,9 +194,9 @@
 
     // CSV upload
     document.getElementById('uploadForm').addEventListener('submit', async function(e) {
-      e.preventDefault(); // This prevents the page from reloading!
+      e.preventDefault(); // Prevents page reload
       const fileInput = document.getElementById('csvFile');
-      if (!fileInput.files.length) return;
+      if (!fileInput.files.length) return false;
 
       const formData = new FormData();
       formData.append('csv', fileInput.files[0]);
@@ -208,9 +208,8 @@
 
       const text = await response.text();
       document.getElementById('uploadMessage').textContent = text;
-      // Do NOT call location.reload() or similar here!
-      // Optionally reset the form:
       e.target.reset();
+      return false; // Extra safeguard
     });
   </script>
 </body>
