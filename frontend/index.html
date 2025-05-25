@@ -5,13 +5,7 @@
   <title>Attendance System</title>
 </head>
 <body>
-  <h2>Register Student</h2>
-  <form id="registerForm">
-    <input placeholder="ID Number" name="id_number" required>
-    <input placeholder="Name" name="name" required>
-    <input placeholder="Email" name="email" required>
-    <button type="submit">Register</button>
-  </form>
+  <!-- Register Student form removed -->
 
   <h2>Set Active Subject</h2>
   <form id="setSubjectForm">
@@ -29,23 +23,13 @@
   </form>
   <p id="attendanceMessage"></p>
   <p>Enter your ID number to time in. Enter again to time out.</p>
+  <p id="status-message" style="display:none;"></p>
 
   <script>
     let activeSubjectId = null;
     let activeSubjectText = '';
 
-    document.getElementById('registerForm').onsubmit = async (e) => {
-      e.preventDefault();
-      const formData = new FormData(e.target);
-      const data = Object.fromEntries(formData.entries());
-
-      const res = await fetch('http://localhost:3000/api/students/register', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(data)
-      });
-      alert(await res.text());
-    };
+    // Registration logic removed
 
     // Populate the subject combo box
     async function loadSubjects() {
@@ -93,7 +77,18 @@
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(data)
       });
-      document.getElementById('attendanceMessage').textContent = await res.text();
+      const result = await res.json();
+      document.getElementById('attendanceMessage').textContent = result.message;
+
+      if (result.status === 'success') {
+        const msg = document.getElementById('status-message');
+        msg.textContent = `${result.message}`;
+        msg.style.display = 'block';
+        setTimeout(() => {
+          msg.style.display = 'none';
+        }, 2000);
+      }
+
       e.target.reset();
     };
   </script>

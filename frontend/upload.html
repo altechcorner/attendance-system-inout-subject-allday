@@ -2,24 +2,167 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Upload Students CSV</title>
+  <title>Admin Upload & Registration</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      background: #f4f6fb;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 420px;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      padding: 2.5em 2em 2em 2em;
+    }
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid #e0e6ed;
+      margin-bottom: 2em;
+    }
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 1em 0;
+      cursor: pointer;
+      font-weight: 500;
+      color: #6c7a89;
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s, border-bottom 0.2s;
+      background: none;
+      outline: none;
+    }
+    .tab.active {
+      color: #2d5be3;
+      border-bottom: 2px solid #2d5be3;
+      background: #f4f6fb;
+    }
+    h2 {
+      margin-top: 0;
+      color: #2d5be3;
+      font-size: 1.3em;
+      letter-spacing: 0.5px;
+      margin-bottom: 1.2em;
+      text-align: center;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1em;
+    }
+    input[type="text"], input[type="email"], input[type="file"] {
+      padding: 0.8em;
+      border: 1px solid #d1d9e6;
+      border-radius: 6px;
+      font-size: 1em;
+      background: #f9fafc;
+      transition: border 0.2s;
+    }
+    input[type="text"]:focus, input[type="email"]:focus, input[type="file"]:focus {
+      border: 1.5px solid #2d5be3;
+      outline: none;
+      background: #fff;
+    }
+    button[type="submit"] {
+      background: linear-gradient(90deg, #2d5be3 60%, #4f8cff 100%);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.9em 0;
+      font-size: 1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s;
+      box-shadow: 0 2px 8px rgba(45,91,227,0.08);
+    }
+    button[type="submit"]:hover {
+      background: linear-gradient(90deg, #1c3fa0 60%, #3576e0 100%);
+    }
+    .message {
+      margin-top: 0.5em;
+      padding: 0.7em 1em;
+      border-radius: 5px;
+      font-size: 0.98em;
+      background: #eaf6ff;
+      color: #1c3fa0;
+      border: 1px solid #b5d6f8;
+      min-height: 1.2em;
+    }
+    @media (max-width: 500px) {
+      .container {
+        max-width: 98vw;
+        padding: 1.2em 0.5em 1.5em 0.5em;
+      }
+      .tabs {
+        font-size: 0.98em;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h2>Register Subject</h2>
-  <form id="subjectForm">
-    <input type="text" name="subject_code" placeholder="Subject Code" required />
-    <input type="text" name="subject_description" placeholder="Subject Description" required />
-    <button type="submit">Register Subject</button>
-  </form>
-  <p id="subjectMessage"></p>
+  <div class="container">
+    <div class="tabs">
+      <button class="tab active" id="tab-subject">Register Subject</button>
+      <button class="tab" id="tab-student">Register Student</button>
+      <button class="tab" id="tab-upload">Upload CSV</button>
+    </div>
 
-  <h2>Upload Students CSV</h2>
-  <form id="uploadForm">
-    <input type="file" id="csvFile" accept=".csv" required />
-    <button type="submit">Upload</button>
-  </form>
-  <p id="message"></p>
+    <!-- Subject Registration -->
+    <div class="tab-content" id="content-subject">
+      <h2>Register Subject</h2>
+      <form id="subjectForm" autocomplete="off">
+        <input type="text" name="subject_code" placeholder="Subject Code" required />
+        <input type="text" name="subject_description" placeholder="Subject Description" required />
+        <button type="submit">Register Subject</button>
+      </form>
+      <div class="message" id="subjectMessage"></div>
+    </div>
+
+    <!-- Student Registration -->
+    <div class="tab-content" id="content-student" style="display:none;">
+      <h2>Register Student</h2>
+      <form id="studentForm" autocomplete="off">
+        <input type="text" name="id_number" placeholder="ID Number" required />
+        <input type="text" name="name" placeholder="Name" required />
+        <input type="email" name="email" placeholder="Email" required />
+        <button type="submit">Register Student</button>
+      </form>
+      <div class="message" id="studentMessage"></div>
+    </div>
+
+    <!-- CSV Upload -->
+    <div class="tab-content" id="content-upload" style="display:none;">
+      <h2>Upload Students CSV</h2>
+      <form id="uploadForm" enctype="multipart/form-data" autocomplete="off">
+        <input type="file" id="csvFile" name="csv" accept=".csv" required />
+        <button type="submit">Upload</button>
+      </form>
+      <div class="message" id="uploadMessage"></div>
+    </div>
+  </div>
+
   <script>
+    // Tab switching logic
+    const tabs = document.querySelectorAll('.tab');
+    const contents = {
+      'tab-subject': document.getElementById('content-subject'),
+      'tab-student': document.getElementById('content-student'),
+      'tab-upload': document.getElementById('content-upload')
+    };
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        Object.values(contents).forEach(c => c.style.display = 'none');
+        contents[tab.id].style.display = '';
+      });
+    });
+
     // Subject registration
     document.getElementById('subjectForm').addEventListener('submit', async function(e) {
       e.preventDefault();
@@ -34,9 +177,23 @@
       e.target.reset();
     });
 
+    // Student registration
+    document.getElementById('studentForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const data = Object.fromEntries(formData.entries());
+      const res = await fetch('http://localhost:3000/api/students/register', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+      });
+      document.getElementById('studentMessage').textContent = await res.text();
+      e.target.reset();
+    });
+
     // CSV upload
     document.getElementById('uploadForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
+      e.preventDefault(); // This prevents the page from reloading!
       const fileInput = document.getElementById('csvFile');
       if (!fileInput.files.length) return;
 
@@ -49,7 +206,10 @@
       });
 
       const text = await response.text();
-      document.getElementById('message').textContent = text;
+      document.getElementById('uploadMessage').textContent = text;
+      // Do NOT call location.reload() or similar here!
+      // Optionally reset the form:
+      e.target.reset();
     });
   </script>
 </body>
