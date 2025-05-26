@@ -3,33 +3,64 @@
 <head>
   <meta charset="UTF-8" />
   <title>Attendance System</title>
+  <!-- Bootstrap 5 CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .attendance-container {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 2px 24px rgba(0,0,0,0.08);
+      padding: 2.5rem 2rem;
+      max-width: 400px;
+      width: 100%;
+    }
+    .form-label {
+      font-weight: 500;
+    }
+    #status-message {
+      transition: opacity 0.3s;
+    }
+  </style>
 </head>
 <body>
-  <!-- Register Student form removed -->
+  <div class="attendance-container">
+    <h2 class="mb-4 text-center">Attendance System</h2>
 
-  <h2>Set Active Subject</h2>
-  <form id="setSubjectForm">
-    <select id="activeSubjectSelect" required>
-      <option value="">-- Select Subject --</option>
-    </select>
-    <button type="submit">Set Subject</button>
-  </form>
-  <p id="activeSubjectDisplay"></p>
+    <form id="setSubjectForm" class="mb-3">
+      <label for="activeSubjectSelect" class="form-label">Set Active Subject</label>
+      <div class="input-group mb-2">
+        <select id="activeSubjectSelect" class="form-select" required>
+          <option value="">-- Select Subject --</option>
+        </select>
+        <button type="submit" class="btn btn-primary">Set</button>
+      </div>
+      <div id="activeSubjectDisplay" class="form-text mb-2"></div>
+    </form>
 
-  <h2>Time In / Time Out</h2>
-  <form id="attendanceForm">
-    <input type="text" name="id_number" placeholder="Student ID Number" required autofocus />
-    <button type="submit">Time In / Time Out</button>
-  </form>
-  <p id="attendanceMessage"></p>
-  <p>Tap your ID to time in. Tap again to time out.</p>
-  <p id="status-message" style="display:none;"></p>
+    <form id="attendanceForm" class="mb-3">
+      <label for="id_number" class="form-label">Time In / Time Out</label>
+      <div class="input-group mb-2">
+        <input type="text" id="id_number" name="id_number" class="form-control" placeholder="Student ID Number" required autofocus />
+        <button type="submit" class="btn btn-success">Submit</button>
+      </div>
+    </form>
+    <div id="attendanceMessage" class="alert alert-info py-2 px-3 mb-2" style="display:none;"></div>
+    <div class="text-muted small mb-2">Tap your ID to time in. Tap again to time out.</div>
+    <div id="status-message" class="alert alert-success text-center" style="display:none;"></div>
+  </div>
 
+  <!-- Bootstrap JS (optional, for dropdowns etc.) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     let activeSubjectId = null;
     let activeSubjectText = '';
-
-    // Registration logic removed
 
     // Populate the subject combo box
     async function loadSubjects() {
@@ -65,7 +96,7 @@
     document.getElementById('attendanceForm').onsubmit = async (e) => {
       e.preventDefault();
       if (!activeSubjectId) {
-        document.getElementById('attendanceMessage').textContent = 'Please set the active subject first!';
+        showMessage('attendanceMessage', 'Please set the active subject first!', 'alert-danger');
         return;
       }
       const formData = new FormData(e.target);
@@ -80,12 +111,10 @@
           body: JSON.stringify(data)
         });
 
-        // Try to parse JSON only if response is JSON
         const contentType = res.headers.get('content-type');
         if (contentType && contentType.includes('application/json')) {
           result = await res.json();
         } else {
-          // Fallback for plain text responses
           const text = await res.text();
           result = { message: text, status: res.ok ? 'success' : 'error' };
         }
@@ -93,7 +122,7 @@
         result = { message: 'Server error. Please try again.', status: 'error' };
       }
 
-      document.getElementById('attendanceMessage').textContent = result.message;
+      showMessage('attendanceMessage', result.message, result.status === 'success' ? 'alert-info' : 'alert-danger');
 
       if (result.status === 'success') {
         const msg = document.getElementById('status-message');
@@ -106,6 +135,16 @@
 
       e.target.reset();
     };
+
+    function showMessage(id, message, alertClass) {
+      const el = document.getElementById(id);
+      el.textContent = message;
+      el.className = `alert ${alertClass} py-2 px-3 mb-2`;
+      el.style.display = 'block';
+      setTimeout(() => {
+        el.style.display = 'none';
+      }, 3000);
+    }
   </script>
 </body>
 </html>
