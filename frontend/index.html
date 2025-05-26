@@ -22,7 +22,7 @@
     <button type="submit">Time In / Time Out</button>
   </form>
   <p id="attendanceMessage"></p>
-  <p>Enter your ID number to time in. Enter again to time out.</p>
+  <p>Tap your ID to time in. Tap again to time out.</p>
   <p id="status-message" style="display:none;"></p>
 
   <script>
@@ -72,12 +72,27 @@
       const data = Object.fromEntries(formData.entries());
       data.subject_id = activeSubjectId;
 
-      const res = await fetch('http://localhost:3000/api/attendance/mark', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(data)
-      });
-      const result = await res.json();
+      let result = { message: 'Unknown error', status: 'error' };
+      try {
+        const res = await fetch('http://localhost:3000/api/attendance/mark', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(data)
+        });
+
+        // Try to parse JSON only if response is JSON
+        const contentType = res.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          result = await res.json();
+        } else {
+          // Fallback for plain text responses
+          const text = await res.text();
+          result = { message: text, status: res.ok ? 'success' : 'error' };
+        }
+      } catch (error) {
+        result = { message: 'Server error. Please try again.', status: 'error' };
+      }
+
       document.getElementById('attendanceMessage').textContent = result.message;
 
       if (result.status === 'success') {

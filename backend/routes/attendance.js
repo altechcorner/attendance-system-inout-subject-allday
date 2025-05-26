@@ -5,18 +5,21 @@ const sendEmail = require('../sendEmail');
 
 router.post('/mark', async (req, res) => {
   const { id_number, subject_id } = req.body;
+  if (!id_number || !subject_id) {
+    return res.status(400).json({ status: 'error', message: 'Missing id_number or subject_id' });
+  }
   const now = new Date();
   const today = now.toISOString().slice(0, 10); // YYYY-MM-DD
 
   db.query('SELECT * FROM students WHERE id_number = ?', [id_number], (err, results) => {
-    if (err) return res.status(500).send(err);
+    if (err) return res.status(500).json({ status: 'error', message: err.message || 'Internal server error' });
     if (results.length === 0) return res.status(404).send('Student not found');
 
     const student = results[0];
 
     // Fetch subject name
     db.query('SELECT subject_description FROM subjects WHERE id = ?', [subject_id], (err, subjectRows) => {
-      if (err) return res.status(500).send(err);
+      if (err) return res.status(500).json({ status: 'error', message: err.message || 'Internal server error' });
       if (subjectRows.length === 0) return res.status(404).send('Subject not found');
       const activeSubject = subjectRows[0].subject_description;
 
@@ -25,7 +28,7 @@ router.post('/mark', async (req, res) => {
         'SELECT * FROM attendance WHERE student_id = ? AND subject_id = ? AND date = ? ORDER BY id DESC LIMIT 1',
         [student.id, subject_id, today],
         (err, attendanceRows) => {
-          if (err) return res.status(500).send(err);
+          if (err) return res.status(500).json({ status: 'error', message: err.message || 'Internal server error' });
 
           if (attendanceRows.length === 0 || attendanceRows[0].time_out !== null) {
             // TIME IN (new record)
@@ -33,7 +36,7 @@ router.post('/mark', async (req, res) => {
               'INSERT INTO attendance (student_id, subject_id, date, time_in) VALUES (?, ?, ?, ?)',
               [student.id, subject_id, today, now],
               async (err) => {
-                if (err) return res.status(500).send(err);
+                if (err) return res.status(500).json({ status: 'error', message: err.message || 'Internal server error' });
 
                 const subject = `Time In Notification for ${student.name}`;
                 const message = `Hello ${student.name},\n\nYou have timed IN at ${now.toLocaleString()}.\n\nActive Subject: ${activeSubject}\n\nIf this wasn't you, contact admin.`;
@@ -44,7 +47,7 @@ router.post('/mark', async (req, res) => {
                   'INSERT INTO pending_emails (to_email, subject, message, html_message, send_at, active_subject) VALUES (?, ?, ?, ?, ?, ?)',
                   [student.email, subject, message, htmlMessage, sendAt, activeSubject],
                   (err) => {
-                    if (err) return res.status(500).send('Time IN recorded but failed to queue email.');
+                    if (err) return res.status(500).json({ status: 'error', message: 'Time IN recorded but failed to queue email.' });
                     res.json({
                       status: 'success',
                       message: `Time IN recorded for ${student.name} at ${now.toLocaleString()}. Email will be sent in 1 minute.`,
@@ -62,7 +65,7 @@ router.post('/mark', async (req, res) => {
               'UPDATE attendance SET time_out = ? WHERE id = ?',
               [now, attendanceRows[0].id],
               async (err) => {
-                if (err) return res.status(500).send(err);
+                if (err) return res.status(500).json({ status: 'error', message: err.message || 'Internal server error' });
 
                 const subject = `Time Out Notification for ${student.name}`;
                 const message = `Hello ${student.name},\n\nYou have timed OUT at ${now.toLocaleString()}.\n\nActive Subject: ${activeSubject}\n\nIf this wasn't you, contact admin.`;
@@ -73,7 +76,7 @@ router.post('/mark', async (req, res) => {
                   'INSERT INTO pending_emails (to_email, subject, message, html_message, send_at, active_subject) VALUES (?, ?, ?, ?, ?, ?)',
                   [student.email, subject, message, htmlMessage, sendAt, activeSubject],
                   (err) => {
-                    if (err) return res.status(500).send('Time OUT recorded but failed to queue email.');
+                    if (err) return res.status(500).json({ status: 'error', message: 'Time OUT recorded but failed to queue email.' });
                     res.json({
                       status: 'success',
                       message: `Time OUT recorded for ${student.name} at ${now.toLocaleString()}. Email will be sent in 1 minute.`,
@@ -86,7 +89,8 @@ router.post('/mark', async (req, res) => {
               }
             );
           } else {
-            res.status(400).send('Attendance for this subject today is already complete.');
+            // For attendance already complete
+            res.status(400).json({ status: 'error', message: 'Attendance for this subject today is already complete.' });
           }
         }
       );
