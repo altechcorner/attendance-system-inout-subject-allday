@@ -1,9 +1,1 @@
-create a report per subject of student attendance
-
-changes
- time in time out in the message and a delay
- removing register student and move it to upload html
- notification message of uploading csv
- added css in the uplload.html frontend
-
- 
+change the time to human readable in the preview report and print report
