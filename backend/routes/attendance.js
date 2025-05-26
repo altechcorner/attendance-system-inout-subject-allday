@@ -98,4 +98,20 @@ router.post('/mark', async (req, res) => {
   });
 });
 
+router.get('/report', (req, res) => {
+  const { subject_id, date } = req.query;
+  db.query(
+    `SELECT s.name, s.id_number, a.time_in, a.time_out
+     FROM attendance a
+     JOIN students s ON a.student_id = s.id
+     WHERE a.subject_id = ? AND a.date = ?
+     ORDER BY s.name ASC`, // <-- Alphabetical order
+    [subject_id, date],
+    (err, rows) => {
+      if (err) return res.status(500).json({ status: 'error', message: err.message });
+      res.json(rows);
+    }
+  );
+});
+
 module.exports = router;
