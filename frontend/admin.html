@@ -13,7 +13,7 @@
       min-height: 100vh;
     }
     .container {
-      max-width: 420px;
+      max-width: 1200px;   /* or 1000px, adjust as needed */
       margin: 40px auto;
       background: #fff;
       border-radius: 14px;
@@ -119,6 +119,23 @@
         page-break-after: avoid;
       }
     }
+    #reportPreview {
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      padding: 2em 1.5em 2em 1.5em;
+      margin: 0 auto;
+      max-width: 100%;
+      width: auto;         /* Changed from 1400px to auto */
+      overflow-x: auto;
+    }
+    @media (max-width: 1500px) {
+      #reportPreview {
+        width: 98vw;
+        min-width: 600px;
+        padding: 1em 0.5em 1.5em 0.5em;
+      }
+    }
   </style>
 </head>
 <body>
@@ -185,7 +202,25 @@
           </div>
           <button onclick="printReportSection()" style="background:#eaf6ff;color:#1c3fa0;border:1px solid #b5d6f8;border-radius:5px;padding:0.3em 1em;cursor:pointer;">Print</button>
         </div>
-        <div id="reportTableContainer"></div>
+
+        <!-- Add this caption just above the search box, inside #reportPreview -->
+        <div style="margin-bottom:0.3em; color:#555; font-size:0.98em;">
+          <em>Filter by typing any part of the student's last name, first name, student number, course, or time in/out below:</em>
+        </div>
+        <div style="margin-bottom:1em;">
+          <input
+            type="text"
+            id="reportSearch"
+            class="form-control"
+            placeholder="Search by Last Name, Student Number, Course, Time In, or Time Out..."
+            style="max-width:350px;display:inline-block;"
+            oninput="filterReportTable()"
+          />
+        </div>
+
+        <div style="overflow-x:auto;">
+          <div id="reportTableContainer"></div>
+        </div>
       </div>
     </div>
  
@@ -292,14 +327,15 @@
       const data = await res.json();
 
       reportData = data;
+      filteredReportData = data;
       currentPage = 1;
       sortColumn = null;
       sortDirection = 'asc';
-      renderReportTable(reportData);
+      renderReportTable(filteredReportData);
       document.getElementById('reportPreview').style.display = 'block';
     });
 
-    function renderReportTable(data, printAll = false) {
+    function renderReportTable(data = filteredReportData, printAll = false) {
       // Sort data
       if (sortColumn) {
         data = [...data].sort((a, b) => {
@@ -406,9 +442,36 @@
     let sortColumn = null;
     let sortDirection = 'asc';
     let reportData = [];
+    let filteredReportData = [];
 
     window.sortReportTable = sortReportTable;
     window.goToReportPage = goToReportPage;
+
+    // Filter report table based on search input
+    function filterReportTable() {
+      const query = document.getElementById('reportSearch').value.trim().toLowerCase();
+      if (!query) {
+        filteredReportData = reportData;
+      } else {
+        filteredReportData = reportData.filter(row => {
+          // Combine all searchable fields as string, now including firstname
+          const fields = [
+            row.lastname,
+            row.firstname, // <-- include firstname
+            row.id_number,
+            row.course,
+            row.time_in ? new Date(row.time_in).toLocaleString() : '',
+            row.time_out ? new Date(row.time_out).toLocaleString() : ''
+          ];
+          return fields.some(field => field && field.toString().toLowerCase().includes(query));
+        });
+      }
+      currentPage = 1;
+      renderReportTable(filteredReportData);
+    }
+
+    // Make filterReportTable global for inline oninput
+    window.filterReportTable = filterReportTable;
   </script>
 </body>
 </html>
