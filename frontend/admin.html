@@ -106,6 +106,18 @@
       button[onclick="printReportSection()"] {
         display: none !important;
       }
+      .report-pagination {
+        display: none !important;
+      }
+      body {
+        width: 8.5in !important;
+        height: 13in !important;
+        margin: 0;
+        padding: 0;
+      }
+      #reportPreview {
+        page-break-after: avoid;
+      }
     }
   </style>
 </head>
@@ -287,7 +299,7 @@
       document.getElementById('reportPreview').style.display = 'block';
     });
 
-    function renderReportTable(data) {
+    function renderReportTable(data, printAll = false) {
       // Sort data
       if (sortColumn) {
         data = [...data].sort((a, b) => {
@@ -305,13 +317,14 @@
       const totalRows = data.length;
       const totalPages = Math.ceil(totalRows / rowsPerPage);
       const startIdx = (currentPage - 1) * rowsPerPage;
-      const pageData = data.slice(startIdx, startIdx + rowsPerPage);
+      const pageData = printAll ? data : data.slice(startIdx, startIdx + rowsPerPage);
 
       // Table headers with sort icons
       const headers = [
         { key: null, label: 'No.' },
         { key: 'lastname', label: 'Student Name' },
         { key: 'id_number', label: 'Student Number' },
+        { key: 'course', label: 'Course' }, // <-- Add this line
         { key: 'time_in', label: 'Time In' },
         { key: 'time_out', label: 'Time Out' }
       ];
@@ -338,30 +351,38 @@
                 ${row.lastname}, ${row.firstname}${row.middle_initial ? ' ' + row.middle_initial + '.' : ''}
               </td>
               <td style="border:1px solid #d1d9e6;padding:0.5em;">${row.id_number}</td>
+              <td style="border:1px solid #d1d9e6;padding:0.5em;">${row.course || '-'}</td> <!-- Course column -->
               <td style="border:1px solid #d1d9e6;padding:0.5em;">${row.time_in ? new Date(row.time_in).toLocaleString() : '-'}</td>
               <td style="border:1px solid #d1d9e6;padding:0.5em;">${row.time_out ? new Date(row.time_out).toLocaleString() : '-'}</td>
             </tr>
-          `).join('') : `<tr><td colspan="5" style="text-align:center;padding:1em;">No records found.</td></tr>`}
+          `).join('') : `<tr><td colspan="6" style="text-align:center;padding:1em;">No records found.</td></tr>`}
         </tbody>
       </table>`;
 
       // Pagination controls
-      html += `<div style="margin-top:1em;display:flex;justify-content:center;gap:0.5em;">`;
-      for (let i = 1; i <= totalPages; i++) {
-        html += `<button onclick="goToReportPage(${i})" style="padding:0.3em 0.8em;${i === currentPage ? 'background:#0d6efd;color:#fff;' : 'background:#eaf6ff;'}border:1px solid #b5d6f8;border-radius:4px;cursor:pointer;">${i}</button>`;
+      if (!printAll) {
+        html += `<div class="report-pagination" style="margin-top:1em;display:flex;justify-content:center;gap:0.5em;">`;
+        for (let i = 1; i <= totalPages; i++) {
+          html += `<button onclick="goToReportPage(${i})" style="padding:0.3em 0.8em;${i === currentPage ? 'background:#0d6efd;color:#fff;' : 'background:#eaf6ff;'}border:1px solid #b5d6f8;border-radius:4px;cursor:pointer;">${i}</button>`;
+        }
+        html += `</div>`;
       }
-      html += `</div>`;
 
       document.getElementById('reportTableContainer').innerHTML = html;
     }
 
     function printReportSection() {
+      // Save current state
+      const originalTable = document.getElementById('reportTableContainer').innerHTML;
+      // Render all data (no pagination)
+      renderReportTable(reportData, true);
       const printContents = document.getElementById('reportPreview').innerHTML;
-      const originalContents = document.body.innerHTML;
       document.body.innerHTML = printContents;
       window.print();
+      // Restore original table and page
       document.body.innerHTML = originalContents;
-      location.reload(); // Optional: reload to restore event listeners
+      document.getElementById('reportTableContainer').innerHTML = originalTable;
+      location.reload();
     }
 
     function sortReportTable(column) {
