@@ -103,10 +103,10 @@
       }
     }
     @media print {
-      button[onclick="printReportSection()"] {
-        display: none !important;
-      }
-      .report-pagination {
+      button[onclick="printReportSection()"],
+      .report-pagination,
+      .report-filter-caption,
+      #reportSearch {
         display: none !important;
       }
       body {
@@ -117,6 +117,10 @@
       }
       #reportPreview {
         page-break-after: avoid;
+      }
+      #reportPreview .report-filter-caption,
+      #reportPreview #reportSearch {
+        display: none !important;
       }
     }
     #reportPreview {
@@ -204,7 +208,7 @@
         </div>
 
         <!-- Add this caption just above the search box, inside #reportPreview -->
-        <div style="margin-bottom:0.3em; color:#555; font-size:0.98em;">
+        <div class="report-filter-caption" style="margin-bottom:0.3em; color:#555; font-size:0.98em;">
           <em>Filter by typing any part of the student's last name, first name, student number, course, or time in/out below:</em>
         </div>
         <div style="margin-bottom:1em;">
@@ -408,16 +412,29 @@
     }
 
     function printReportSection() {
-      // Save current state
-      const originalTable = document.getElementById('reportTableContainer').innerHTML;
-      // Render all data (no pagination)
-      renderReportTable(reportData, true);
+      // Prompt for course filter before printing
+      const uniqueCourses = [...new Set(reportData.map(row => row.course).filter(Boolean))];
+      let courseFilter = '';
+      if (uniqueCourses.length > 1) {
+        courseFilter = prompt(
+          "Enter course name to print only that course (leave blank to print all):\n" +
+          uniqueCourses.join(', ')
+        );
+        if (courseFilter !== null && courseFilter.trim() !== '') {
+          // Filter reportData by course (case-insensitive)
+          const filtered = reportData.filter(row =>
+            row.course && row.course.toLowerCase().includes(courseFilter.trim().toLowerCase())
+          );
+          renderReportTable(filtered, true);
+        } else {
+          renderReportTable(reportData, true);
+        }
+      } else {
+        renderReportTable(reportData, true);
+      }
       const printContents = document.getElementById('reportPreview').innerHTML;
       document.body.innerHTML = printContents;
       window.print();
-      // Restore original table and page
-      document.body.innerHTML = originalContents;
-      document.getElementById('reportTableContainer').innerHTML = originalTable;
       location.reload();
     }
 
