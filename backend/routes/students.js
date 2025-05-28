@@ -16,7 +16,7 @@ router.post('/upload', upload.single('csv'), (req, res) => {
     .on('end', () => {
       const values = results.map(row => [
         row.id_number,
-        row.rfid_number,
+        row.rfid_number || null,
         row.lastname,
         row.firstname,
         row.middle_initial,
@@ -37,12 +37,12 @@ router.post('/upload', upload.single('csv'), (req, res) => {
 
 router.post('/register', (req, res) => {
   const { id_number, rfid_number, lastname, firstname, middle_initial, course, email } = req.body;
-  if (!id_number || !rfid_number || !lastname || !firstname || !middle_initial || !course || !email) {
-    return res.status(400).send('All fields are required.');
+  if (!id_number || !lastname || !firstname || !middle_initial || !course || !email) {
+    return res.status(400).send('All fields except RFID number are required.');
   }
   const sql = `INSERT INTO students (id_number, rfid_number, lastname, firstname, middle_initial, course, email)
                VALUES (?, ?, ?, ?, ?, ?, ?)`;
-  const values = [id_number, rfid_number, lastname, firstname, middle_initial, course, email];
+  const values = [id_number, rfid_number || null, lastname, firstname, middle_initial, course, email];
   db.query(sql, values, (err, result) => {
     if (err) {
       if (err.code === 'ER_DUP_ENTRY') {
@@ -51,6 +51,54 @@ router.post('/register', (req, res) => {
       return res.status(500).send('Database error.');
     }
     res.send('Student registered successfully.');
+  });
+});
+
+router.post('/update', (req, res) => {
+  const { id, rfid_number, id_number, lastname, firstname, middle_initial, course, email } = req.body;
+  if (!id || !id_number || !lastname || !firstname || !course || !email) {
+    return res.status(400).send('Missing required fields.');
+  }
+  const sql = `UPDATE students SET rfid_number=?, id_number=?, lastname=?, firstname=?, middle_initial=?, course=?, email=? WHERE id=?`;
+  const values = [rfid_number || null, id_number, lastname, firstname, middle_initial, course, email, id];
+  db.query(sql, values, (err, result) => {
+    if (err) {
+      if (err.code === 'ER_DUP_ENTRY') {
+        // Check which field is duplicated
+        if (err.sqlMessage && err.sqlMessage.includes('rfid_number')) {
+          return res.status(409).send('RFID number already exists.');
+        }
+        if (err.sqlMessage && err.sqlMessage.includes('id_number')) {
+          return res.status(409).send('Student ID number already exists.');
+        }
+        return res.status(409).send('Duplicate entry.');
+      }
+      console.error('Update error:', err);
+      return res.status(500).send('Database error.');
+    }
+    res.send('Student updated successfully.');
+  });
+});
+
+router.delete('/delete/:id', (req, res) => {
+  const { id } = req.params;
+  db.query('DELETE FROM students WHERE id = ?', [id], (err, result) => {
+    if (err) {
+      console.error('Delete error:', err);
+      return res.status(500).send('Database error.');
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).send('Student not found.');
+    }
+    res.send('Student deleted successfully.');
+  });
+});
+
+// GET all students
+router.get('/', (req, res) => {
+  db.query('SELECT * FROM students', (err, results) => {
+    if (err) return res.status(500).json({ error: 'Database error.' });
+    res.json(results);
   });
 });
 
