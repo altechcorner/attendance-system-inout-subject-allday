@@ -133,8 +133,12 @@
     <div class="tab-content" id="content-student" style="display:none;">
       <h2>Register Student</h2>
       <form id="studentForm" autocomplete="off">
-        <input type="text" name="id_number" placeholder="ID Number" required />
-        <input type="text" name="name" placeholder="Name" required />
+        <input type="text" name="rfid_number" placeholder="RFID Number" required />
+        <input type="text" name="id_number" placeholder="Student ID Number" required />
+        <input type="text" name="lastname" placeholder="Last Name" required />
+        <input type="text" name="firstname" placeholder="First Name" required />
+        <input type="text" name="middle_initial" placeholder="M.I." maxlength="2" />
+        <input type="text" name="course" placeholder="Course" required />
         <input type="email" name="email" placeholder="Email" required />
         <button type="submit">Register Student</button>
       </form>
@@ -280,7 +284,7 @@
           <tr style="background:#f4f6fb;">
             <th style="border:1px solid #d1d9e6;padding:0.5em;">No.</th>
             <th style="border:1px solid #d1d9e6;padding:0.5em;">Student Name</th>
-            <th style="border:1px solid #d1d9e6;padding:0.5em;">ID Number</th>
+            <th style="border:1px solid #d1d9e6;padding:0.5em;">Student Number</th>
             <th style="border:1px solid #d1d9e6;padding:0.5em;">Time In</th>
             <th style="border:1px solid #d1d9e6;padding:0.5em;">Time Out</th>
           </tr>
@@ -289,7 +293,9 @@
           ${data.length ? data.map((row, idx) => `
             <tr>
               <td style="border:1px solid #d1d9e6;padding:0.5em;text-align:center;">${idx + 1}</td>
-              <td style="border:1px solid #d1d9e6;padding:0.5em;">${row.name}</td>
+              <td style="border:1px solid #d1d9e6;padding:0.5em;">
+                ${row.lastname}, ${row.firstname}${row.middle_initial ? ' ' + row.middle_initial + '.' : ''}
+              </td>
               <td style="border:1px solid #d1d9e6;padding:0.5em;">${row.id_number}</td>
               <td style="border:1px solid #d1d9e6;padding:0.5em;">${row.time_in ? new Date(row.time_in).toLocaleString() : '-'}</td>
               <td style="border:1px solid #d1d9e6;padding:0.5em;">${row.time_out ? new Date(row.time_out).toLocaleString() : '-'}</td>

@@ -9,7 +9,11 @@ DROP TABLE IF EXISTS subjects;
 CREATE TABLE students (
   id INT AUTO_INCREMENT PRIMARY KEY,
   id_number VARCHAR(50) UNIQUE,
-  name VARCHAR(100),
+  rfid_number VARCHAR(50) UNIQUE,
+  lastname VARCHAR(50) NOT NULL,
+  firstname VARCHAR(50) NOT NULL,
+  middle_initial VARCHAR(5),
+  course VARCHAR(100),
   email VARCHAR(100)
 );
 
