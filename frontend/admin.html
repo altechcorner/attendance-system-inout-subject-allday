@@ -291,8 +291,8 @@
               <td style="border:1px solid #d1d9e6;padding:0.5em;text-align:center;">${idx + 1}</td>
               <td style="border:1px solid #d1d9e6;padding:0.5em;">${row.name}</td>
               <td style="border:1px solid #d1d9e6;padding:0.5em;">${row.id_number}</td>
-              <td style="border:1px solid #d1d9e6;padding:0.5em;">${row.time_in ? row.time_in : '-'}</td>
-              <td style="border:1px solid #d1d9e6;padding:0.5em;">${row.time_out ? row.time_out : '-'}</td>
+              <td style="border:1px solid #d1d9e6;padding:0.5em;">${row.time_in ? new Date(row.time_in).toLocaleString() : '-'}</td>
+              <td style="border:1px solid #d1d9e6;padding:0.5em;">${row.time_out ? new Date(row.time_out).toLocaleString() : '-'}</td>
             </tr>
           `).join('') : `<tr><td colspan="5" style="text-align:center;padding:1em;">No records found.</td></tr>`}
         </tbody>
