@@ -399,7 +399,7 @@ function showEditStudentModal(id) {
   document.getElementById('edit_middle_initial').value = s.middle_initial || '';
   document.getElementById('edit_course').value = s.course || '';
   document.getElementById('edit_email').value = s.email || '';
-  document.getElementById('editStudentModal').style.display = 'block';
+  document.getElementById('editStudentModal').style.display = 'flex';
 }
 window.showEditStudentModal = showEditStudentModal;
 
@@ -429,6 +429,10 @@ window.showEditStudentModal = showEditStudentModal;
         tab.classList.add('active');
         Object.values(contents).forEach(c => c.style.display = 'none');
         contents[tab.id].style.display = '';
+
+        // Always close both modals when switching tabs
+        document.getElementById('editSubjectModal').style.display = 'none';
+        document.getElementById('editStudentModal').style.display = 'none';
       });
     });
 
@@ -691,10 +695,14 @@ window.showEditStudentModal = showEditStudentModal;
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(data)
       });
-      const result = await res.json();
-      alert(result.message || 'Student updated successfully!');
-      closeEditStudentModal();
-      loadStudents(); // <-- CORRECT
+      const msg = await res.text();
+      document.getElementById('studentMessage').textContent = msg;
+
+      // Only close the modal if update is successful
+      if (msg.toLowerCase().includes('success')) {
+        closeEditStudentModal();
+        loadStudents();
+      }
     });
 
     // Add this script section after your other JS code
@@ -792,7 +800,8 @@ window.showEditStudentModal = showEditStudentModal;
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(data)
       });
-      document.getElementById('subjectMessage').textContent = await res.text();
+      const msg = await res.text();
+      document.getElementById('subjectMessage').textContent = msg;
       closeEditSubjectModal();
       loadSubjects();
     });
