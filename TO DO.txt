@@ -1,3 +1,2 @@
-fix modal for student management for edit
-and modal for delete error database notification if the record is existing
 add user account
+
