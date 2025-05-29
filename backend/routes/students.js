@@ -84,6 +84,10 @@ router.delete('/delete/:id', (req, res) => {
   const { id } = req.params;
   db.query('DELETE FROM students WHERE id = ?', [id], (err, result) => {
     if (err) {
+      // Check for foreign key constraint error
+      if (err.code === 'ER_ROW_IS_REFERENCED_2' || err.errno === 1451) {
+        return res.status(409).send('Cannot delete this student because they have attendance records or related data. Please remove those records first.');
+      }
       console.error('Delete error:', err);
       return res.status(500).send('Database error.');
     }

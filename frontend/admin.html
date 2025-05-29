@@ -837,6 +837,23 @@ window.showEditStudentModal = showEditStudentModal;
       loadStudents();
     }
     window.deleteStudent = deleteStudent;
+
+    function filterStudentTable() {
+      const query = document.getElementById('studentSearch').value.trim().toLowerCase();
+      if (!query) {
+        renderStudentTable(allStudents);
+        return;
+      }
+      const filtered = allStudents.filter(s =>
+        (s.lastname && s.lastname.toLowerCase().includes(query)) ||
+        (s.firstname && s.firstname.toLowerCase().includes(query)) ||
+        (s.id_number && s.id_number.toLowerCase().includes(query)) ||
+        (s.course && s.course.toLowerCase().includes(query))
+      );
+      studentCurrentPage = 1;
+      renderStudentTable(filtered);
+    }
+    window.filterStudentTable = filterStudentTable;
   </script>
 
 </body>
